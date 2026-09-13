@@ -57,6 +57,17 @@ export const api = {
   deleteContact: (id: string) =>
     req(`/contacts/${id}`, { method: "DELETE" }),
 
+  // transfer schedules
+  listSchedules: () => req("/schedules"),
+  createSchedule: (body: any) =>
+    req("/schedules", { method: "POST", body: JSON.stringify(body) }),
+  updateSchedule: (id: string, body: any) =>
+    req(`/schedules/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  deleteSchedule: (id: string) =>
+    req(`/schedules/${id}`, { method: "DELETE" }),
+  reorderSchedules: (ids: string[]) =>
+    req(`/schedules/reorder`, { method: "POST", body: JSON.stringify({ ids }) }),
+
   // summary
   summary: (scope?: string) =>
     req(`/summary${scope ? `?scope=${scope}` : ""}`),

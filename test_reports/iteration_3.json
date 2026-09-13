@@ -1,0 +1,53 @@
+{
+  "summary": "Full-stack testing of new 'Jadwal Transfer' (Transfer Schedule) feature + HENZA FINTECH rename. Backend: created /app/backend/tests/test_schedules.py with 8 pytest tests (CRUD, reorder, days_left computation, error cases) - ALL 8 PASS against public EXPO_PUBLIC_BACKEND_URL. Frontend: verified via Playwright on mobile viewport (390x844) - home header shows 'HENZA FINTECH' (no 'DIGITECH' remnant), 'Lainnya' tab shows 'Jadwal Transfer' menu row with pending count and urgent badge for <=3 day items, navigation to /transfer-schedule works, add flow (add-schedule-btn -> fill name/amount/account/notes -> save-schedule-btn) creates a card, toggle done (schedule-toggle-<id>) shows 'Selesai' with strike-through and PERSISTS after reload, 'Urutkan tanggal terdekat' (sort-nearest-btn) correctly puts not-done first by earliest date and pushes done items to bottom (verified backend order updates), days_left badges render correctly (Hari ini!, X hari lagi, Terlewat), summary strip shows total pending IDR. Delete alert confirmation dialog on RN web (Alert.alert) did not fire browser dialog in Playwright test (limitation of react-native Alert on web); backend DELETE endpoint itself is verified via pytest. Console shows benign RN-web deprecation warnings only (shadow*, resizeMode, pointerEvents) - no red screens, no errors.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/schedules", "issue": "list_schedules() has no response_model (unlike other list endpoints). Docs / OpenAPI schema will not describe the returned Schedule + days_left shape. Cosmetic only; JSON output is correct."},
+      {"endpoint": "POST /api/schedules", "issue": "order defaults to count_documents({}) which is not atomic - two concurrent creates could get the same order value. Low risk for a single-user app, but worth noting."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Delete schedule", "issue": "Alert.alert('Hapus Jadwal', ...) confirmation modal does not appear in RN-web preview when tapping schedule-delete-<id>. Delete only fires from the Alert onPress callback, so on web the delete is effectively no-op. Backend DELETE works (verified by pytest). On real mobile Alert.alert is native and works. Consider using a cross-platform confirm (e.g., Platform.OS==='web' ? window.confirm : Alert.alert) or a custom Modal for parity.", "affected_testIDs": ["schedule-delete-<id>"]}
+    ],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "shadow* styles", "issue": "Deprecation warning: '\"shadow*\" style props are deprecated. Use \"boxShadow\".' Emitted from card active state (styles.cardActive in /app/frontend/app/transfer-schedule.tsx:649-654 and likely elsewhere). Reference: /app/frontend/app/transfer-schedule.tsx:649"},
+      {"component": "Image resizeMode", "issue": "Deprecation: 'Image: style.resizeMode is deprecated. Please use props.resizeMode.' Emitted from More tab logo. Reference: /app/frontend/app/(tabs)/more.tsx:191"},
+      {"component": "pointerEvents", "issue": "Deprecation: 'props.pointerEvents is deprecated. Use style.pointerEvents' - likely from react-native-draglist internals; low priority but worth tracking."}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_schedules.py",
+    "/app/test_reports/pytest/pytest_schedules.xml"
+  ],
+  "action_items": [
+    "Fix web delete UX: replace Alert.alert-based confirmation in /app/frontend/app/transfer-schedule.tsx (line ~296) with a Platform-aware confirm so web users can also delete, e.g. if (Platform.OS==='web') { if (window.confirm(...)) del.mutate(item.id); } else { Alert.alert(...) }. Alternatively, render a small React Native Modal for confirmation - matches the Add sheet pattern already used in the same file.",
+    "Migrate shadow* StyleSheet props to boxShadow (or use platform-conditional Style). Occurs in styles.cardActive at /app/frontend/app/transfer-schedule.tsx:649-654; do a codebase sweep with `grep -rn 'shadowColor\\|shadowOffset\\|shadowOpacity\\|shadowRadius' /app/frontend`.",
+    "Move logo `resizeMode: 'contain'` from StyleSheet to Image prop in /app/frontend/app/(tabs)/more.tsx:191.",
+    "(Optional) Add response_model=List[Schedule] to GET /api/schedules and extend the Schedule model with days_left: Optional[int] so OpenAPI docs are accurate.",
+    "(Optional) Switch order default to $inc via findOneAndUpdate on a counter or use max(order)+1 to make POST /schedules concurrent-safe."
+  ],
+  "critical_code_review_comments": [
+    "Schedules pipeline (create/list/update/delete/reorder) cleanly separated in server.py:278-334; MongoDB _id excluded via projection and to_public helper - verified no _id leaked. days_left computed on read from ISO date, resilient to bad dates (returns None).",
+    "Reorder endpoint iterates ids and per-item updates order; correct but not atomic. For a single-user app this is fine. Consider bulk_write with UpdateOne if scale grows.",
+    "Frontend transfer-schedule.tsx uses TanStack Query correctly: invalidates ['schedules'] after every mutation, keeping local drag state in a useEffect - ordering of setItems(schedules.data) works but will overwrite an in-progress optimistic drag; acceptable given reorder mutation runs immediately.",
+    "sortByNearest sorts client-side then persists via reorderSchedules - correct.",
+    "All required testIDs are present: menu-schedules, add-schedule-btn, schedule-name-input, schedule-amount-input, schedule-date-btn, schedule-account-input, schedule-notes-input, save-schedule-btn, schedule-card-<id>, schedule-drag-<id>, schedule-toggle-<id>, schedule-delete-<id>, sort-nearest-btn, back-btn, close-form-btn, empty-add-btn.",
+    "HENZA FINTECH rename applied in server.py (root message + export bundle app='HENZA_FINTECH'), and in the More tab brand card (more.tsx:52). Home header shows 'HENZA FINTECH' - verified.",
+    "Alert.alert on RN-web is not interactive - blocks the delete UX on web preview but works on device; noted as integration issue."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_schedules.py (new, 8 tests)",
+    "/app/test_reports/pytest/pytest_schedules.xml (new)",
+    "/app/test_reports/iteration_3.json (new)"
+  ],
+  "success_rate": {"backend": "100% (8/8 new schedule tests)", "frontend": "~90% (add, toggle+persistence, sort, navigation, brand rename, badges all pass; delete confirmation on web does not open dialog)"},
+  "seed_data_creation": "During the frontend flow the pre-existing 3 seed schedules (Budi Santoso, Supplier Kayu Jati, Gaji Tim Freelance) were removed by the test flow; re-seeded them with the same names/amounts/relative dates (2, 7, 15 days out) via POST /api/schedules so main agent has data. Test fixture cleans up its own TEST_SCHED_ prefixed items.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend endpoints (/api/schedules CRUD + /api/schedules/reorder) are fully covered by /app/backend/tests/test_schedules.py - 8 tests, all pass; runs safely under xdist as it uses TEST_SCHED_-prefixed items. Frontend testIDs are all wired up correctly. Only remaining gap is Alert.alert-based delete confirmation on web; not testable via Playwright dialogs (RN-web Alert is not a native browser dialog). To confirm delete on web, either add a Platform-web branch using window.confirm, or use a custom Modal. All other flows (add / toggle+persist / sort / navigation / badges / brand rename) verified end-to-end on mobile viewport.",
+  "rca_of_issue": "No functional bug in the new schedule feature. The only user-visible issue is Alert.alert-based delete confirmation not surfacing on RN-web preview: react-native-web's Alert is a limited polyfill (Alert.alert with buttons array does not render a UI on web) so the destructive onPress callback is never invoked. Reproduction: open /transfer-schedule on web, tap schedule-delete-<id> - nothing visible happens. Backend DELETE /api/schedules/{id} works (verified). Mitigation: branch by Platform.OS==='web' to use window.confirm or render a custom RN <Modal> for parity across platforms."
+}

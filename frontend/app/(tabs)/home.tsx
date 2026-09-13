@@ -87,7 +87,7 @@ export default function HomeScreen() {
                 <Image source={LOGO} style={styles.logo} />
               </View>
               <View>
-                <Text style={styles.brandTitle}>HENZA DIGITECH</Text>
+                <Text style={styles.brandTitle}>HENZA FINTECH</Text>
                 <Text style={styles.brandSub}>Solusindo · Manajemen Keuangan</Text>
               </View>
             </View>

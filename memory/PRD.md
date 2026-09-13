@@ -1,8 +1,8 @@
-# HENZA DIGITECH - Product Requirements Document
+# HENZA FINTECH - Product Requirements Document
 
 ## Overview
 Personal + business finance tracker for Indonesian users. Currency: IDR (Rupiah). Language: Bahasa Indonesia.
-Single-user (no auth).
+Single-user (no auth). (Renamed from "HENZA DIGITECH" → "HENZA FINTECH" on 2026-09-13.)
 
 ## Core Features
 1. **Beranda (Home Dashboard)**
@@ -29,12 +29,15 @@ Single-user (no auth).
 4. **Lainnya (More)**
    - Aset Kas Lain (bank accounts, e-wallet, receivables, cash, company): full CRUD, balance accumulated into total wealth
    - Tagihan Rutin: recurring bills with due_day, in-app reminders (upcoming <=7 days badge on More menu + Home card)
+   - **Jadwal Transfer (Transfer Schedule)** [added 2026-09-13]: plan money transfers to someone. Fields: Nama, Jumlah, Tanggal, No. rekening/bank, Catatan. Drag rows up/down to reorder (react-native-draglist) + "Urutkan tanggal terdekat" button (not-done first, earliest date). Mark "Selesai" toggle keeps item as history. Badge on More menu + summary strip when a transfer is <=3 days away. Persisted via /api/schedules (order field) + /api/schedules/reorder. Included in backup export/import.
 
 ## Backend Endpoints (all prefixed /api)
-- CRUD: /transactions, /assets, /bills, /contacts
+- CRUD: /transactions, /assets, /bills, /contacts, /schedules
+- POST /schedules/reorder {ids:[...]} — persist manual drag order
 - GET /summary?scope=business
 - GET /bills/upcoming?days=7
 - POST /ai/tips (uses EMERGENT_LLM_KEY)
+- GET /export, POST /import (now include schedules)
 
 ## Tech Stack
 - Frontend: Expo Router (tabs), react-native-gifted-charts, expo-image-picker, expo-haptics, @react-native-vector-icons/feather

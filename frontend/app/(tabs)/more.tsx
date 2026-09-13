@@ -23,12 +23,21 @@ export default function MoreScreen() {
     queryKey: ["folders", ""],
     queryFn: () => api.listFolders(),
   });
+  const schedules = useQuery({
+    queryKey: ["schedules"],
+    queryFn: () => api.listSchedules(),
+  });
 
   const totalAssets = (assets.data || []).reduce(
     (sum: number, a: any) => sum + (a.balance || 0),
     0
   );
   const urgentCount = (upcoming.data || []).filter((b: any) => b.days_left <= 7).length;
+  const scheduleList = (schedules.data || []) as any[];
+  const pendingSchedules = scheduleList.filter((s) => !s.done);
+  const scheduleSoon = pendingSchedules.filter(
+    (s) => s.days_left != null && s.days_left <= 3
+  ).length;
 
   return (
     <View style={styles.container}>
@@ -40,7 +49,7 @@ export default function MoreScreen() {
           <View style={styles.logoBadge}>
             <Image source={LOGO} style={styles.logo} />
           </View>
-          <Text style={styles.brandName}>HENZA DIGITECH</Text>
+          <Text style={styles.brandName}>HENZA FINTECH</Text>
           <Text style={styles.brandTag}>Solusindo · Financial App</Text>
         </View>
 
@@ -67,6 +76,23 @@ export default function MoreScreen() {
           onPress={() => router.push("/bills-list")}
           count={(bills.data || []).length}
           testID="menu-bills"
+        />
+
+        {/* Jadwal Transfer */}
+        <Section
+          title="Jadwal Transfer"
+          subtitle={
+            scheduleSoon > 0
+              ? `${scheduleSoon} transfer segera (≤3 hari)`
+              : pendingSchedules.length > 0
+              ? `${pendingSchedules.length} transfer terjadwal`
+              : "Rencanakan transfer ke seseorang"
+          }
+          icon="send"
+          badge={scheduleSoon > 0 ? scheduleSoon : undefined}
+          onPress={() => router.push("/transfer-schedule")}
+          count={pendingSchedules.length}
+          testID="menu-schedules"
         />
 
         {/* Berkas Perusahaan */}

@@ -67,7 +67,7 @@ export default function BackupScreen() {
         }
       }
       setLastResult(
-        `✓ Ekspor berhasil: ${bundle.counts.transactions} transaksi, ${bundle.counts.assets} aset, ${bundle.counts.bills} tagihan, ${bundle.counts.contacts} kontak, ${bundle.counts.folders} folder, ${bundle.counts.files} berkas.`
+        `✓ Ekspor berhasil: ${bundle.counts.transactions} transaksi, ${bundle.counts.assets} aset, ${bundle.counts.bills} tagihan, ${bundle.counts.contacts} kontak, ${bundle.counts.folders} folder, ${bundle.counts.files} berkas, ${bundle.counts.schedules ?? 0} jadwal transfer.`
       );
     } catch (e: any) {
       Alert.alert("Gagal ekspor", e.message || "Coba lagi.");
@@ -95,8 +95,8 @@ export default function BackupScreen() {
         });
       }
       const bundle = JSON.parse(text);
-      if (bundle.app && bundle.app !== "HENZA_DIGITECH") {
-        throw new Error("Berkas cadangan bukan dari HENZA DIGITECH.");
+      if (bundle.app && bundle.app !== "HENZA_DIGITECH" && bundle.app !== "HENZA_FINTECH") {
+        throw new Error("Berkas cadangan bukan dari HENZA FINTECH.");
       }
       const result = await api.importAll({ ...bundle, mode });
       const r = result.results;
@@ -124,6 +124,7 @@ export default function BackupScreen() {
     contacts: 0,
     folders: 0,
     files: 0,
+    schedules: 0,
   };
 
   return (
@@ -153,6 +154,7 @@ export default function BackupScreen() {
             <StatRow icon="users" label="Kontak" value={c.contacts} />
             <StatRow icon="folder" label="Folder" value={c.folders} />
             <StatRow icon="file" label="Berkas" value={c.files} />
+            <StatRow icon="send" label="Jadwal Transfer" value={c.schedules ?? 0} />
           </View>
         </View>
 

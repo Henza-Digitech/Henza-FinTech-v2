@@ -85,6 +85,21 @@ class Contact(ContactIn):
     created_at: str = Field(default_factory=now_iso)
 
 
+class ScheduleIn(BaseModel):
+    name: str  # recipient / penerima
+    amount: float
+    date: str  # planned transfer date (ISO / YYYY-MM-DD)
+    account: str = ""  # no rekening / bank
+    notes: str = ""
+    done: bool = False
+    order: Optional[int] = None
+
+
+class Schedule(ScheduleIn):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: str = Field(default_factory=now_iso)
+
+
 # ============ HELPERS ============
 def to_public(doc: dict) -> dict:
     if not doc:
@@ -258,6 +273,65 @@ async def delete_contact(cid: str):
     if res.deleted_count == 0:
         raise HTTPException(404, "Not found")
     return {"ok": True}
+
+
+# ============ TRANSFER SCHEDULES ============
+def _with_days_left(doc: dict) -> dict:
+    today = datetime.now(timezone.utc).date()
+    try:
+        raw = doc.get("date") or ""
+        dt = datetime.fromisoformat(raw.replace("Z", "+00:00")).date()
+        doc["days_left"] = (dt - today).days
+    except Exception:
+        doc["days_left"] = None
+    return doc
+
+
+@api_router.post("/schedules", response_model=Schedule)
+async def create_schedule(payload: ScheduleIn):
+    obj = Schedule(**payload.dict())
+    if obj.order is None:
+        obj.order = await db.schedules.count_documents({})
+    await db.schedules.insert_one(obj.dict())
+    return obj
+
+
+@api_router.get("/schedules")
+async def list_schedules():
+    docs = await db.schedules.find({}, {"_id": 0}).sort("order", 1).to_list(2000)
+    return [_with_days_left(d) for d in docs]
+
+
+@api_router.put("/schedules/{sid}", response_model=Schedule)
+async def update_schedule(sid: str, payload: ScheduleIn):
+    existing = await db.schedules.find_one({"id": sid}, {"_id": 0})
+    if not existing:
+        raise HTTPException(404, "Not found")
+    updates = payload.dict()
+    if updates.get("order") is None:
+        updates["order"] = existing.get("order", 0)
+    await db.schedules.update_one({"id": sid}, {"$set": updates})
+    existing.update(updates)
+    return existing
+
+
+@api_router.delete("/schedules/{sid}")
+async def delete_schedule(sid: str):
+    res = await db.schedules.delete_one({"id": sid})
+    if res.deleted_count == 0:
+        raise HTTPException(404, "Not found")
+    return {"ok": True}
+
+
+class ReorderPayload(BaseModel):
+    ids: List[str] = []
+
+
+@api_router.post("/schedules/reorder")
+async def reorder_schedules(payload: ReorderPayload):
+    for i, sid in enumerate(payload.ids):
+        await db.schedules.update_one({"id": sid}, {"$set": {"order": i}})
+    return {"ok": True, "count": len(payload.ids)}
 
 
 # ============ SUMMARY / DASHBOARD ============
@@ -616,6 +690,7 @@ class ImportBundle(BaseModel):
     contacts: List[dict] = []
     folders: List[dict] = []
     files: List[dict] = []
+    schedules: List[dict] = []
     mode: str = "merge"  # "merge" (skip duplicates by id) or "replace" (wipe first)
 
 
@@ -627,12 +702,13 @@ async def export_all(include_files: bool = True):
     bills = await db.bills.find({}, {"_id": 0}).to_list(10000)
     contacts = await db.contacts.find({}, {"_id": 0}).to_list(10000)
     folders = await db.folders.find({}, {"_id": 0}).to_list(10000)
+    schedules = await db.schedules.find({}, {"_id": 0}).to_list(10000)
     if include_files:
         files = await db.files.find({}, {"_id": 0}).to_list(10000)
     else:
         files = await db.files.find({}, {"_id": 0, "data": 0}).to_list(10000)
     return {
-        "app": "HENZA_DIGITECH",
+        "app": "HENZA_FINTECH",
         "version": 1,
         "exported_at": now_iso(),
         "counts": {
@@ -642,6 +718,7 @@ async def export_all(include_files: bool = True):
             "contacts": len(contacts),
             "folders": len(folders),
             "files": len(files),
+            "schedules": len(schedules),
         },
         "transactions": txs,
         "assets": assets,
@@ -649,6 +726,7 @@ async def export_all(include_files: bool = True):
         "contacts": contacts,
         "folders": folders,
         "files": files,
+        "schedules": schedules,
     }
 
 
@@ -662,6 +740,7 @@ async def import_all(bundle: ImportBundle):
         await db.contacts.delete_many({})
         await db.folders.delete_many({})
         await db.files.delete_many({})
+        await db.schedules.delete_many({})
 
     def prep(items):
         out = []
@@ -682,6 +761,7 @@ async def import_all(bundle: ImportBundle):
         ("contacts", bundle.contacts),
         ("folders", bundle.folders),
         ("files", bundle.files),
+        ("schedules", bundle.schedules),
     ]:
         cleaned = prep(items)
         inserted = 0
@@ -703,7 +783,7 @@ async def import_all(bundle: ImportBundle):
 # ============ ROOT ============
 @api_router.get("/")
 async def root():
-    return {"message": "HENZA DIGITECH API"}
+    return {"message": "HENZA FINTECH API"}
 
 
 app.include_router(api_router)
