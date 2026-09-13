@@ -358,6 +358,29 @@ async def summary(scope: Optional[str] = None):
         if t["type"] == "expense":
             by_category[t["category"]] = by_category.get(t["category"], 0) + t["amount"]
 
+    # Per-scope cash flow (personal vs business "rekening")
+    def _scope_of(t: dict) -> str:
+        return "business" if t.get("scope") == "business" else "personal"
+
+    scope_agg = {
+        "personal": {"income": 0.0, "expense": 0.0},
+        "business": {"income": 0.0, "expense": 0.0},
+    }
+    for t in txs:
+        sc = _scope_of(t)
+        if t["type"] == "income":
+            scope_agg[sc]["income"] += t["amount"]
+        else:
+            scope_agg[sc]["expense"] += t["amount"]
+    by_scope = {
+        sc: {
+            "income": v["income"],
+            "expense": v["expense"],
+            "net": v["income"] - v["expense"],
+        }
+        for sc, v in scope_agg.items()
+    }
+
     # Monthly series: last 6 months
     series = []
     today = datetime.now(timezone.utc)
@@ -393,6 +416,7 @@ async def summary(scope: Optional[str] = None):
         "total_wealth": total_wealth,
         "expense_ratio": expense_ratio,
         "by_category": by_category,
+        "by_scope": by_scope,
         "series": series,
         "transactions_count": len(txs),
     }

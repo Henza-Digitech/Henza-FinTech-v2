@@ -174,6 +174,49 @@ export default function HomeScreen() {
           />
         </View>
 
+        {/* Total Rekening Pribadi & Perusahaan */}
+        <View style={styles.accountsRow}>
+          <View style={[styles.accountCard, { borderColor: colors.brand }]} testID="account-personal-card">
+            <View style={styles.accountHead}>
+              <View style={[styles.accountIcon, { backgroundColor: `${colors.brand}18` }]}>
+                <Feather name="user" size={16} color={colors.brand} />
+              </View>
+              <Text style={styles.accountLabel}>Rekening Pribadi</Text>
+            </View>
+            <Text style={[styles.accountValue, { color: colors.brand }]} testID="account-personal-value">
+              {s ? formatIDR(s.by_scope?.personal?.net || 0) : "..."}
+            </Text>
+            <View style={styles.accountMetaRow}>
+              <Text style={styles.accountMetaIn}>
+                +{s ? shortIDR(s.by_scope?.personal?.income || 0) : "-"}
+              </Text>
+              <Text style={styles.accountMetaOut}>
+                -{s ? shortIDR(s.by_scope?.personal?.expense || 0) : "-"}
+              </Text>
+            </View>
+          </View>
+
+          <View style={[styles.accountCard, { borderColor: colors.brandPrimary }]} testID="account-business-card">
+            <View style={styles.accountHead}>
+              <View style={[styles.accountIcon, { backgroundColor: `${colors.brandPrimary}18` }]}>
+                <Feather name="briefcase" size={16} color={colors.brandPrimary} />
+              </View>
+              <Text style={styles.accountLabel}>Rekening Perusahaan</Text>
+            </View>
+            <Text style={[styles.accountValue, { color: colors.brandPrimary }]} testID="account-business-value">
+              {s ? formatIDR(s.by_scope?.business?.net || 0) : "..."}
+            </Text>
+            <View style={styles.accountMetaRow}>
+              <Text style={styles.accountMetaIn}>
+                +{s ? shortIDR(s.by_scope?.business?.income || 0) : "-"}
+              </Text>
+              <Text style={styles.accountMetaOut}>
+                -{s ? shortIDR(s.by_scope?.business?.expense || 0) : "-"}
+              </Text>
+            </View>
+          </View>
+        </View>
+
         {/* AI Tip */}
         <View style={styles.card} testID="ai-tips-card">
           <View style={styles.cardHeader}>
@@ -377,6 +420,38 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   qaLabel: { fontSize: 11, color: colors.onSurfaceSecondary, fontWeight: "500" },
+
+  accountsRow: {
+    flexDirection: "row",
+    gap: 12,
+    paddingHorizontal: 16,
+    marginTop: 16,
+  },
+  accountCard: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    padding: 14,
+  },
+  accountHead: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
+  accountIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  accountLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: colors.onSurfaceSecondary,
+    flex: 1,
+  },
+  accountValue: { fontSize: 18, fontWeight: "800" },
+  accountMetaRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 8 },
+  accountMetaIn: { fontSize: 11, fontWeight: "700", color: colors.success },
+  accountMetaOut: { fontSize: 11, fontWeight: "700", color: colors.error },
 
   card: {
     backgroundColor: colors.surface,
