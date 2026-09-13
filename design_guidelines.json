@@ -1,0 +1,155 @@
+{
+  "app_name": "HENZA DIGITECH",
+  "personality": "1 iOS-Native Clean",
+  "personality_one_liner": "A clean, data-dense iOS-native financial tracker balancing corporate rigor with a modern, approachable layout.",
+  "color": {
+    "surface": "#ffffff",
+    "onSurface": "#111827",
+    "surfaceSecondary": "#f8fafc",
+    "onSurfaceSecondary": "#334155",
+    "surfaceTertiary": "#f1f5f9",
+    "onSurfaceTertiary": "#475569",
+    "surfaceInverse": "#0f172a",
+    "onSurfaceInverse": "#ffffff",
+    "brand": "#1a3a5c",
+    "brandPrimary": "#1f8a9e",
+    "onBrandPrimary": "#ffffff",
+    "brandSecondary": "#1a3a5c",
+    "onBrandSecondary": "#ffffff",
+    "brandTertiary": "#e6f2f5",
+    "onBrandTertiary": "#1f8a9e",
+    "success": "#10b981",
+    "onSuccess": "#ffffff",
+    "warning": "#f59e0b",
+    "onWarning": "#ffffff",
+    "error": "#ef4444",
+    "onError": "#ffffff",
+    "info": "#3b82f6",
+    "onInfo": "#ffffff",
+    "border": "#e2e8f0",
+    "borderStrong": "#cbd5e1",
+    "divider": "#f1f5f9",
+    "muted": "#64748b",
+    "onBrand": "#ffffff"
+  },
+  "typography": {
+    "displayFontFamily": "Space Grotesk",
+    "textFontFamily": "Inter",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Generous outer padding (lg) for screens, but tight, structural spacing (sm/md) within Excel-style list rows to optimize data density without feeling cramped.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": "1",
+  "navigation": "bottom_tabs",
+  "icon_set": "Phosphor",
+  "glassmorphism": {
+    "enabled": "true",
+    "do's": [
+      "Use on sticky headers over scrolling transaction lists",
+      "Use on the bottom tab bar"
+    ],
+    "dont's": [
+      "Don't use on table rows or dense data cards"
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Beranda (Home)",
+      "purpose": "Dashboard overview showing total balance, AI saving tips, and quick access to add transactions.",
+      "states": {
+        "loading": "Skeleton loader for balance and charts.",
+        "empty": "No transactions yet - display 'empty wallet' illustration with CTA.",
+        "error": "Failed to load dashboard data. Retry button."
+      },
+      "layout": "Hero section at top (glass/gradient card on dark navy background) showing Total Balance and cash flow charts. Below it, an AI Savings Tip card. Finally, a horizontally scrollable list of 'Accounts/Assets' and a vertical list of 'Recent Transactions'."
+    },
+    {
+      "name": "Transaksi (Transactions)",
+      "purpose": "A modern, Excel-style dense list of all income and expenses with sorting and filtering.",
+      "states": {
+        "loading": "Row-based skeleton loader.",
+        "empty": "Illustration indicating no records found.",
+        "error": "Failed to load transactions. Retry button."
+      },
+      "layout": "Sticky top header with Search, Filter (Business vs Personal), and Category pills (Konsumsi, Transportasi, dsb). Below is a dense list-view (Excel-style) where each row shows Date, Category Icon, Title, and a right-aligned Amount. Tapping a row opens a bottom sheet with full details and the attached receipt photo."
+    },
+    {
+      "name": "Bisnis (Business)",
+      "purpose": "Dedicated corporate financial management tracking business cash flow and contacts directory.",
+      "states": {
+        "loading": "Skeleton loader for company stats.",
+        "empty": "No business contacts or records yet. Add CTA.",
+        "error": "Failed to load business data."
+      },
+      "layout": "Top toggle (Cash Flow vs Contacts). Cash Flow view shows business-only analytics charts. Contacts view shows a searchable directory of companies/clients (Name, Address, Phone, Notes) using initials-avatars or fetched logos."
+    },
+    {
+      "name": "Lainnya (More)",
+      "purpose": "Secondary features like Recurring Bills (with reminders), Profile settings, and Cash Assets from other instruments.",
+      "states": {
+        "loading": "Spinner.",
+        "empty": "N/A",
+        "error": "Failed to load settings."
+      },
+      "layout": "List of standard settings rows with tinted icon containers. Highlight 'Tagihan Rutin' (Recurring Bills) prominently with due date badges."
+    }
+  ],
+  "images": {
+    "hero_background": {
+      "url": "https://images.unsplash.com/photo-1605106702734-205df224ecce?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MDV8MHwxfHNlYXJjaHwxfHxkYXJrJTIwbmF2eSUyMGJsdWUlMjBhYnN0cmFjdCUyMGdlb21ldHJpYyUyMHBhdHRlcm58ZW58MHx8fHwxNzg5MDY1NTc2fDA&ixlib=rb-4.1.0&q=85",
+      "alt": "Dark navy geometric abstract background"
+    },
+    "receipt_placeholder": {
+      "url": "https://images.unsplash.com/photo-1585119192382-71236d43b689?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxNzV8MHwxfHNlYXJjaHwxfHxyZWNlaXB0JTIwcGFwZXIlMjBvbiUyMGRlc2t8ZW58MHx8fHwxNzg5MDY1NTc2fDA&ixlib=rb-4.1.0&q=85",
+      "alt": "Receipt paper on desk"
+    },
+    "empty_transactions": {
+      "url": "https://images.pexels.com/photos/6289030/pexels-photo-6289030.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Empty wallet illustration"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Strictly follow the color palette. Navy blue and teal are explicitly allowed per the user's brief (Brand matches HENZA DIGITECH).",
+    "For the 'Transaksi' screen, implement a modern mobile 'Excel-style' layout: use a dense list (reduced vertical padding), right-aligned amounts, sticky headers for category sorting, and tap-to-expand details rather than horizontal scrolling.",
+    "Ensure all text and labels are in Indonesian (e.g., Beranda, Transaksi, Bisnis, Lainnya, Konsumsi, Transportasi).",
+    "Currency must be formatted as IDR (Rupiah) (e.g., Rp 1.500.000).",
+    "Implement the 'Business vs Personal' split using a clear segmented control or filter in the UI.",
+    "Use Phosphor icons. All icons should be consistent in weight (either all regular or all filled).",
+    "For the Contacts directory, use a searchable list where tapping a row opens a bottom sheet with Notes and Address details.",
+    "Include an 'Upload Receipt' placeholder button/image in the Add Transaction form.",
+    "Apply a vertical gradient scrim (transparent to surfaceInverse) over the hero_background image to ensure text readability.",
+    "Add haptic feedback to bottom tabs, Segmented controls, and primary CTA buttons like 'Add Transaction' or 'Save'."
+  ]
+}
